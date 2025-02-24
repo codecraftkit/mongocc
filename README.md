@@ -1,6 +1,6 @@
-# mongoc
+# mongocc
 
-The `mongoc` package provides a simple and efficient way to manage multiple MongoDB connections in Go projects. This module abstracts the configuration and connection setup, allowing developers to focus on directly interacting with collections and documents.
+The `mongocc` package provides a simple and efficient way to manage multiple MongoDB connections in Go projects. This module abstracts the configuration and connection setup, allowing developers to focus on directly interacting with collections and documents.
 
 #### Key Features:
 * Enables the instantiation of multiple independent MongoDB connections.
@@ -12,25 +12,25 @@ The `mongoc` package provides a simple and efficient way to manage multiple Mong
 ### Install
 
 ```bash
-go get github.com/codecraftkit/mongoc
+go get github.com/codecraftkit/mongocc
 ```
 
 ### Usage
-Here’s a practical example of how to use the `mongoc` package:
+Here’s a practical example of how to use the `mongocc` package:
 ```go
 package main
 
 import (
 	"fmt"
 	"context"
-	"github.com/codecraftkit/mongoc"
+	"github.com/codecraftkit/mongocc"
 )
 
 func main() {
 
-	MyMongoDbDataStore := mongoc.MongoDataStore{}
+	MyMongoDbDataStore := mongocc.MongoDataStore{}
 	
-	if err := mongoc.Connect("mongodb://localhost:27017", "my_db", &MyMongoDbDataStore); err != nil {
+	if err := mongocc.Connect("mongodb://localhost:27017", "my_db", &MyMongoDbDataStore); err != nil {
 		panic(err)
 	}
 
@@ -62,7 +62,7 @@ func main() {
 ```
 ---
 
-#### Why Use mongoc?
+#### Why Use mongocc?
 Modularity: Ideal for projects requiring multiple connections to different databases.
 Ease of Use: Reduces the initial complexity of setting up MongoDB connections.
 Seamless Integration: Compatible with the official MongoDB driver for Go (mongo-driver).
