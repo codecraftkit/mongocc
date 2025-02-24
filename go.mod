@@ -1,6 +1,6 @@
-module github.com/codecraftkit/mongoc
+module github.com/codecraftkit/mongocc
 
-go 1.23.3
+go 1.24.0
 
 require go.mongodb.org/mongo-driver/v2 v2.0.0
 
