@@ -28,3 +28,7 @@ func Connect(mongoUri string, dbName string, dataStore *MongoDataStore) error {
 	return nil
 
 }
+
+func (ds *MongoDataStore) GetColl(collectionName string) *mongo.Collection {
+	return ds.DB.Collection(collectionName)
+}
