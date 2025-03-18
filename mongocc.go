@@ -15,7 +15,7 @@ func Connect(mongoUri string, dbName string) (*mongo.Database, error) {
 		return nil, err
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Send a ping to confirm a successful connection
 	var result bson.M
