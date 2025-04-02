@@ -2,6 +2,7 @@ package mongocc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -50,6 +51,10 @@ type MongoFunctions interface {
 	UpdateMany(ctx context.Context, collectionName string, query interface{}, update interface{}, opts *options.UpdateManyOptionsBuilder) (*mongo.UpdateResult, error)
 }
 
+func (mongodb *MongoQueries) GetCollection(collectionName string) *mongo.Collection {
+	return mongodb.db.Collection(collectionName)
+}
+
 func (mongodb *MongoQueries) Find(ctx context.Context, collectionName string, query interface{}, opts *options.FindOptionsBuilder) (*mongo.Cursor, error) {
 	return mongodb.db.Collection(collectionName).Find(ctx, query, opts)
 }
@@ -84,4 +89,24 @@ func (mongodb *MongoQueries) DeleteOne(ctx context.Context, collectionName strin
 
 func (mongodb *MongoQueries) DeleteMany(ctx context.Context, collectionName string, query interface{}, opts *options.DeleteManyOptionsBuilder) (*mongo.DeleteResult, error) {
 	return mongodb.db.Collection(collectionName).DeleteMany(ctx, query, opts)
+}
+
+func (mongodb *MongoQueries) Aggregate(ctx context.Context, collectionName string, pipeline interface{}, opts *options.AggregateOptionsBuilder) (*mongo.Cursor, error) {
+	return mongodb.db.Collection(collectionName).Aggregate(ctx, pipeline, opts)
+}
+
+func CheckMongoError(err error) error {
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return fmt.Errorf("NOT_FOUND: %s", err.Error())
+		}
+		if mongo.IsDuplicateKeyError(err) {
+			return fmt.Errorf("INDEX_DUPLICATED: %s", err.Error())
+		}
+		if mongo.IsNetworkError(err) {
+			return fmt.Errorf("NETWORK_ERROR: %s", err.Error())
+		}
+		return fmt.Errorf(err.Error())
+	}
+	return err
 }
