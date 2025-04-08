@@ -95,6 +95,10 @@ func (mongodb *MongoQueries) Aggregate(ctx context.Context, collectionName strin
 	return mongodb.db.Collection(collectionName).Aggregate(ctx, pipeline, opts)
 }
 
+func (mongodb *MongoQueries) CountDocuments(ctx context.Context, collectionName string, query interface{}) (int64, error) {
+	return mongodb.db.Collection(collectionName).CountDocuments(ctx, query)
+}
+
 func CheckMongoError(err error) error {
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
