@@ -25,8 +25,6 @@ func Connect(mongoUri string, dbName string) (*MongoQueries, error) {
 	}
 	fmt.Printf("You successfully connected to MongoDB://%s\n", dbName)
 
-	//dataStore.Client = client
-
 	db := client.Database(dbName)
 
 	mongoQueries := MongoQueries{
