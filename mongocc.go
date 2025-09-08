@@ -47,6 +47,10 @@ type MongoFunctions interface {
 	InsertOne(ctx context.Context, collectionName string, document interface{}) (*mongo.InsertOneResult, error)
 	UpdateOne(ctx context.Context, collectionName string, query interface{}, update interface{}, opts *options.UpdateOneOptionsBuilder) (*mongo.UpdateResult, error)
 	UpdateMany(ctx context.Context, collectionName string, query interface{}, update interface{}, opts *options.UpdateManyOptionsBuilder) (*mongo.UpdateResult, error)
+	DeleteOne(ctx context.Context, collectionName string, query interface{}, opts *options.DeleteOneOptionsBuilder) (*mongo.DeleteResult, error)
+	DeleteMany(ctx context.Context, collectionName string, query interface{}, opts *options.DeleteManyOptionsBuilder) (*mongo.DeleteResult, error)
+	Aggregate(ctx context.Context, collectionName string, pipeline interface{}, opts *options.AggregateOptionsBuilder) (*mongo.Cursor, error)
+	CountDocuments(ctx context.Context, collectionName string, query interface{}) (int64, error)
 }
 
 func (mongodb *MongoQueries) GetCollection(collectionName string) *mongo.Collection {
