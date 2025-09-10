@@ -23,7 +23,7 @@ func Connect(mongoUri string, dbName string) (*MongoQueries, error) {
 	if err = client.Database("admin").RunCommand(ctx, bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		return nil, err
 	}
-	fmt.Printf("You successfully connected to %s db: %s\n", mongoUri, dbName)
+	fmt.Printf("You successfully connected to Mongo: %s db: %s\n", mongoUri, dbName)
 
 	db := client.Database(dbName)
 
