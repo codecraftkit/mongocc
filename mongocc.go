@@ -152,3 +152,20 @@ func (mongodb *MongoQueries) CheckMongoError(err error) error {
 	}
 	return err
 }
+
+func CheckMongoError(err error) error {
+	fmt.Println("func CheckMongoError is deprecated")
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return fmt.Errorf("NOT_FOUND: %s", err.Error())
+		}
+		if mongo.IsDuplicateKeyError(err) {
+			return fmt.Errorf("INDEX_DUPLICATED: %s", err.Error())
+		}
+		if mongo.IsNetworkError(err) {
+			return fmt.Errorf("NETWORK_ERROR: %s", err.Error())
+		}
+		return fmt.Errorf(err.Error())
+	}
+	return err
+}
