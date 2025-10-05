@@ -135,10 +135,10 @@ func (mongodb *MongoQueries) CountDocuments(ctx context.Context, collectionName 
 }
 
 func (mongodb *MongoQueries) CheckMongoError(err error) error {
-	if mongodb.Debug {
-		fmt.Println("[LOG] CheckMongoError", err)
-	}
 	if err != nil {
+		if mongodb.Debug {
+			fmt.Println("[LOG] CheckMongoError", err)
+		}
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return fmt.Errorf("NOT_FOUND: %s", err.Error())
 		}
