@@ -5,8 +5,9 @@ The `mongocc` package provides a simple and efficient way to manage multiple Mon
 #### Key Features:
 * Enables the instantiation of multiple independent MongoDB connections.
 * Simplifies connection management with configurable structures.
-* Provides direct access to collections within a database.
-* Fully compatible with standard MongoDB operations such as inserts, queries, updates, and deletions.
+* Provides wrapper methods for all common MongoDB operations (Find, Insert, Update, Delete, Aggregate).
+* Built-in debug mode for logging operations.
+* Error classification for common MongoDB errors (not found, duplicate key, network error).
 
 ---
 ### Install
@@ -16,26 +17,27 @@ go get github.com/codecraftkit/mongocc
 ```
 
 ### Usage
-Here’s a practical example of how to use the `mongocc` package:
+Here's a practical example of how to use the `mongocc` package:
 ```go
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
+
 	"github.com/codecraftkit/mongocc"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func main() {
-
-	MyMongoDbDataStore := mongocc.MongoDataStore{}
-	
-	if err := mongocc.Connect("mongodb://localhost:27017", "my_db", &MyMongoDbDataStore); err != nil {
+	mq, err := mongocc.Connect("mongodb://localhost:27017", "my_db", &mongocc.ClientOptions{
+		Debug: true,
+	})
+	if err != nil {
 		panic(err)
 	}
 
-	// Collection
-	MyCollection := MyMongoDbDataStore.DB.Collection("users")
+	ctx := context.Background()
 
 	type User struct {
 		ID    string `bson:"_id,omitempty"`
@@ -44,20 +46,23 @@ func main() {
 	}
 
 	// Insert
-	_, err := MyCollection.InsertOne(context.Background(), bson.M{"_id": "asdqwe123", "name": "John Doe", "email": "johndoe@example.com"})
+	_, err = mq.InsertOne(ctx, "users", User{
+		ID:    "asdqwe123",
+		Name:  "John Doe",
+		Email: "johndoe@example.com",
+	})
 	if err != nil {
 		panic(err)
 	}
 
-	// Find
+	// FindOne
 	var user User
-	err = MyCollection.FindOne(context.Background(), bson.M{"_id": "asdqwe123"}).Decode(&user)
+	err = mq.FindOne(ctx, "users", bson.M{"_id": "asdqwe123"}, nil).Decode(&user)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(user)
-	
 }
 ```
 ---
@@ -65,13 +70,7 @@ func main() {
 #### Why Use mongocc?
 Modularity: Ideal for projects requiring multiple connections to different databases.
 Ease of Use: Reduces the initial complexity of setting up MongoDB connections.
-Seamless Integration: Compatible with the official MongoDB driver for Go (mongo-driver).
+Seamless Integration: Compatible with the official MongoDB driver for Go (mongo-driver/v2).
 
 #### Best Suited For:
 Developers seeking a straightforward solution to manage MongoDB connections in applications that need to efficiently and cleanly interact with multiple databases.
-
-
-
-
-
-
