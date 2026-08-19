@@ -4,11 +4,44 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+// redactedURI is what Connect logs when the connection string cannot be parsed
+// into a scheme and a host. An unparseable string may still carry credentials,
+// so it is never echoed back.
+const redactedURI = "[redacted]"
+
+// redactMongoURI keeps only the part of a connection string that the log line
+// is actually for — which server the client attached to — and drops everything
+// else.
+//
+// It rebuilds the URI from scheme and host rather than removing the parts that
+// are known to hold secrets today. Userinfo is the obvious one, but it is not
+// the only one: the option string carries tlsCertificateKeyFilePassword, and
+// the AWS session token inside authMechanismProperties. Rebuilding means an
+// option added to the connection string later cannot leak by omission.
+func redactMongoURI(mongoUri string) string {
+	parsed, err := url.Parse(mongoUri)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return redactedURI
+	}
+	return parsed.Scheme + "://" + parsed.Host
+}
+
+// connectionLogLine builds the line Connect prints once the ping succeeds.
+//
+// It is a separate function so the redaction can be tested without a live
+// MongoDB. A test that only covered redactMongoURI would not notice a later
+// edit that formats the raw URI into this message again, which is exactly how
+// the credentials got here in the first place.
+func connectionLogLine(mongoUri string, dbName string) string {
+	return fmt.Sprintf("You successfully connected to Mongo: %s db: %s", redactMongoURI(mongoUri), dbName)
+}
 
 func Connect(mongoUri string, dbName string, opts *ClientOptions) (*MongoQueries, error) {
 
@@ -24,7 +57,7 @@ func Connect(mongoUri string, dbName string, opts *ClientOptions) (*MongoQueries
 	if err = client.Database("admin").RunCommand(ctx, bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		return nil, err
 	}
-	fmt.Printf("You successfully connected to Mongo: %s db: %s\n", mongoUri, dbName)
+	fmt.Println(connectionLogLine(mongoUri, dbName))
 
 	db := client.Database(dbName)
 
