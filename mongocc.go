@@ -153,7 +153,7 @@ func (mongodb *MongoQueries) CheckMongoError(err error) error {
 		if mongo.IsNetworkError(err) {
 			return fmt.Errorf("NETWORK_ERROR: %s", err.Error())
 		}
-		return fmt.Errorf(err.Error())
+		return errors.New(err.Error())
 	}
 	return err
 }
@@ -170,7 +170,7 @@ func CheckMongoError(err error) error {
 		if mongo.IsNetworkError(err) {
 			return fmt.Errorf("NETWORK_ERROR: %s", err.Error())
 		}
-		return fmt.Errorf(err.Error())
+		return errors.New(err.Error())
 	}
 	return err
 }
