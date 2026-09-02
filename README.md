@@ -65,6 +65,29 @@ func main() {
 	fmt.Println(user)
 }
 ```
+### Several databases on one client
+
+`Connect` opens a new `*mongo.Client` — its own connection pool — on every call.
+When you need more than one database on the same server, open the client once
+and derive the other handles from it:
+
+```go
+registry, err := mongocc.Connect("mongodb://localhost:27017", "registry", nil)
+if err != nil {
+	panic(err)
+}
+
+// No network I/O: same client, same pool, another database.
+tenantA := registry.WithDatabase("platform:tenant-a")
+tenantB := registry.WithDatabase("platform:tenant-b")
+
+// Or wrap a *mongo.Client you already own.
+mq := mongocc.NewFromClient(client, "billing", nil)
+
+// Disconnect ONCE, from the owner — the derived handles share the client.
+defer registry.Database().Client().Disconnect(context.Background())
+```
+
 ---
 
 #### Why Use mongocc?

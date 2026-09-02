@@ -59,19 +59,51 @@ func Connect(mongoUri string, dbName string, opts *ClientOptions) (*MongoQueries
 	}
 	fmt.Println(connectionLogLine(mongoUri, dbName))
 
-	db := client.Database(dbName)
+	return NewFromClient(client, dbName, opts), nil
+}
 
+// NewFromClient wraps a client the caller already owns.
+//
+// It is the constructor for the second and every later handle on one client.
+// Connect opens a *mongo.Client on every call — its own connection pool, its
+// own monitoring goroutines — so a service that needs N databases on the same
+// server and calls Connect N times is running N pools against one deployment.
+// The driver's client.Database(name) is a handle with no network I/O, and this
+// is how a MongoQueries gets built on top of one.
+//
+// No ping and no log line: the client was already verified by whoever opened
+// it. A nil opts means Debug off, same as Connect.
+func NewFromClient(client *mongo.Client, dbName string, opts *ClientOptions) *MongoQueries {
 	if opts == nil {
 		opts = &ClientOptions{}
 	}
 
-	mongoQueries := MongoQueries{
-		db:    db,
+	return &MongoQueries{
+		db:    client.Database(dbName),
 		Debug: opts.Debug,
 	}
+}
 
-	return &mongoQueries, nil
+// WithDatabase returns a handle to another database on the SAME client.
+//
+// The new handle shares the receiver's connection pool and inherits its Debug
+// flag; the receiver is left untouched. This is the multi-tenant shape — one
+// server, one database per tenant — without one pool per tenant.
+//
+// Because the client is shared, a handle built here must never disconnect it:
+// that would take every other handle down with it.
+func (mongodb *MongoQueries) WithDatabase(dbName string) *MongoQueries {
+	return &MongoQueries{
+		db:    mongodb.db.Client().Database(dbName),
+		Debug: mongodb.Debug,
+	}
+}
 
+// Database exposes the handle this MongoQueries operates on. Name() says which
+// database, and Client() is the way to Disconnect at shutdown — by the owner
+// of the client, once, not by every handle derived from it.
+func (mongodb *MongoQueries) Database() *mongo.Database {
+	return mongodb.db
 }
 
 type MongoQueries struct {
